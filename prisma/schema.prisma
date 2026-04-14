@@ -1,13 +1,97 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  ADMIN
+  TEACHER
+  USER
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String
+  role        RoleType @default(USER)
+
+  lessonPlans LessonPlan[]
+  diagnoses   Diagnosis[]
+  diaries     Diary[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LessonPlan {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  content     String
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model Resource {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  type        String
+  url         String
+
+  learningPathId String?
+  learningPath   LearningPath? @relation(fields: [learningPathId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model LearningPath {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+
+  resources   Resource[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Diagnosis {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  answers   Json
+  result    String
+
+  recommendations Recommendation[]
+
+  createdAt DateTime @default(now())
+}
+
+model Recommendation {
+  id          String   @id @default(uuid())
+  diagnosisId String
+  diagnosis   Diagnosis @relation(fields: [diagnosisId], references: [id])
+
+  content     String
+
+  createdAt   DateTime @default(now())
+}
+
+model Diary {
+  id        String   @id @default(uuid())
+  content   String
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }
