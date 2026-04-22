@@ -14,62 +14,104 @@ enum RoleType {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  name        String
-  email       String   @unique
-  password    String
-  role        RoleType @default(USER)
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  role     RoleType @default(USER)
 
   lessonPlans LessonPlan[]
   diagnoses   Diagnosis[]
   diaries     Diary[]
+  progress    UserProgress[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  learningPaths LearningPath[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model LessonPlan {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   title       String
   description String
   content     String
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Resource {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   title       String
   description String
   type        String
   url         String
 
-  learningPathId String?
-  learningPath   LearningPath? @relation(fields: [learningPathId], references: [id])
+  stepId String?
+  step   Step?   @relation(fields: [stepId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model LearningPath {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   title       String
   description String
 
-  resources   Resource[]
+  steps Step[]
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+
+  recommendations Recommendation[]
+}
+
+model UserProgress {
+  id String @id @default(uuid())
+
+  userId String
+  stepId String
+
+  completed Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+  step Step @relation(fields: [stepId], references: [id])
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, stepId])
+  @@index([userId])
+}
+
+model Step {
+  id       String @id @default(uuid())
+  title    String
+  position Int
+
+  learningPathId String
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id])
+
+  resources Resource[]
+  progress  UserProgress[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([learningPathId, position])
+  @@index([learningPathId])
 }
 
 model Diagnosis {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  answers   Json
-  result    String
+  answers Json
+  result  String
 
   recommendations Recommendation[]
 
@@ -77,21 +119,22 @@ model Diagnosis {
 }
 
 model Recommendation {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   diagnosisId String
   diagnosis   Diagnosis @relation(fields: [diagnosisId], references: [id])
 
-  content     String
+  learningPathId String?
+  learningPath   LearningPath? @relation(fields: [learningPathId], references: [id])
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Diary {
-  id        String   @id @default(uuid())
-  content   String
+  id      String @id @default(uuid())
+  content String
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
 }
