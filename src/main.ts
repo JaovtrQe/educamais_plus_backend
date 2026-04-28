@@ -9,8 +9,14 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transform: true,
     }),
   )
+
+  app.enableCors({
+    origin: 'http://localhost:5173', // porta padrão do Vite
+    credentials: true,
+  })
 
   await app.listen(process.env.PORT ?? 3000);
 }

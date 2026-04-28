@@ -8,9 +8,9 @@ datasource db {
 }
 
 enum RoleType {
-  ADMIN
   TEACHER
-  USER
+  COORDINATOR
+  SPECIAL_ED
 }
 
 model User {
@@ -18,7 +18,7 @@ model User {
   name     String
   email    String   @unique
   password String
-  role     RoleType @default(USER)
+  role     RoleType @default(TEACHER)
 
   lessonPlans LessonPlan[]
   diagnoses   Diagnosis[]
@@ -37,8 +37,14 @@ model LessonPlan {
   description String
   content     String
 
+  objectives  String[]   // objetivo pedagógico
+  strategies  String[]   // estratégias de ensino
+  inclusions  String[]   // adaptações inclusivas (TEA, TDAH, dislexia etc)
+
   userId String
   user   User   @relation(fields: [userId], references: [id])
+
+  diary Diary?
 
   createdAt DateTime @default(now())
 }
@@ -131,10 +137,17 @@ model Recommendation {
 
 model Diary {
   id      String @id @default(uuid())
-  content String
+
+  lessonPlanId String @unique
+  lessonPlan   LessonPlan @relation(fields: [lessonPlanId], references: [id])
+
+  whatWorked   String
+  whatFailed   String?
+  studentResponse String?
+  inclusionReflection String?
 
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
 }
